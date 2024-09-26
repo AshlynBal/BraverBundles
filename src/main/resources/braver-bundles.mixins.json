@@ -3,6 +3,7 @@
 	"package": "net.wetnoodle.braverbundles.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"allay.AllayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
