@@ -1,11 +1,12 @@
 {
-	"required": true,
-	"package": "net.wetnoodle.braverbundles.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"allay.AllayMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "net.wetnoodle.braverbundles.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "allay.AllayMixin",
+    "dispenser.DispenseItemBehaviorMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }
