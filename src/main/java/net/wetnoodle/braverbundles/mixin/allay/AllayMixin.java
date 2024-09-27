@@ -24,13 +24,24 @@ public abstract class AllayMixin extends PathfinderMob {
     /**
      * If the item the allay is looking for is inside its bundle, the allay will consider them equal when determining if the allay wants to pick the item up.
      *
-     * @param original    If the items are actually equal.
-     * @param gatherStack The item stack to be gathered.
+     * @param original  If the items are actually equal.
+     * @param itemStack The item stack to be gathered.
      * @return if the items are equal or if the target is found inside the allay's bundle.
      */
     @ModifyExpressionValue(method = "wantsToPickUp", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/allay/Allay;allayConsidersItemEqual(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"))
-    private boolean braverBundles$allayConsidersItemsEqual(boolean original, ItemStack gatherStack) {
-        return original || braverBundles$isItemInBundle(this.getItemInHand(InteractionHand.MAIN_HAND), gatherStack);
+    private boolean braverBundles$allayConsidersItemsEqual(boolean original, ItemStack itemStack) {
+        ItemStack heldStack = this.getItemInHand(InteractionHand.MAIN_HAND);
+        // If not holding a bundle, return original value
+        if (!heldStack.is(Items.BUNDLE)) return original;
+        // if the target stack is also a bundle...
+        if (original) {
+            // if the bundle is empty, return true
+            BundleContents bundleContents = heldStack.get(DataComponents.BUNDLE_CONTENTS);
+            if (bundleContents == null || bundleContents.isEmpty()) {
+                return true;
+            }
+        }
+        return braverBundles$isItemInBundle(heldStack, itemStack);
     }
 
 
@@ -45,7 +56,6 @@ public abstract class AllayMixin extends PathfinderMob {
      */
     @Unique
     private boolean braverBundles$isItemInBundle(ItemStack bundle, ItemStack itemStack) {
-        if (!bundle.is(Items.BUNDLE)) return false;
         BundleContents bundleContents = bundle.get(DataComponents.BUNDLE_CONTENTS);
         if (bundleContents != null && !bundleContents.isEmpty()) {
             for (ItemStack bundledItem : bundleContents.items()) {
