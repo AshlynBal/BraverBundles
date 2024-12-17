@@ -4,7 +4,10 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "allay.AllayMixin",
-    "dispenser.DispenseItemBehaviorMixin"
+    "dispenser.DispenseItemBehaviorMixin",
+    "item_entity.BundleItemMixin",
+    "item_entity.EntityMixin",
+    "item_entity.ItemEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
