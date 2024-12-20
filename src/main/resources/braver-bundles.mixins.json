@@ -5,9 +5,7 @@
   "mixins": [
     "allay.AllayMixin",
     "dispenser.DispenseItemBehaviorMixin",
-    "item_entity.BundleItemMixin",
-    "item_entity.EntityMixin",
-    "item_entity.ItemEntityMixin"
+    "item_entity.BundleItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

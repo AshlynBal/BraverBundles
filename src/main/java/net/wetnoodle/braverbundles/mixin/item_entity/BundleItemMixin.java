@@ -19,16 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(BundleItem.class)
 public abstract class BundleItemMixin {
-//    @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BundleItem;dropContents(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/player/Player;)Z"), cancellable = true)
-//    void braverBundles$use(
-//            Level level, Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir,
-//            @Local ItemStack itemStack
-//    ) {
-////        Vec3 vec3 = player.getViewVector(1.0F).normalize();
-////        Vec3 vec32 = new Vec3(player.getX(), player.getEyeY(), player.getZ());
-////        vec3.add(vec32);
-//    }
-
     @WrapOperation(method = "dropContent(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/BundleItem;dropContent(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/player/Player;)Z"))
     boolean braverBundles$dropContent(BundleItem instance, ItemStack itemStack, Player player, Operation<Boolean> original) {
