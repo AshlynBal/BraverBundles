@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.Level;
+import net.wetnoodle.braverbundles.config.BBConfig;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,6 +32,9 @@ public abstract class AllayMixin extends PathfinderMob {
      */
     @ModifyExpressionValue(method = "wantsToPickUp", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/allay/Allay;allayConsidersItemEqual(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"))
     private boolean braverBundles$allayConsidersItemsEqual(boolean original, @Local(ordinal = 0, argsOnly = true) ItemStack itemStack) {
+        if (!BBConfig.ALLAY_WHITELISTERS) {
+            return original;
+        }
         ItemStack heldStack = this.getItemInHand(InteractionHand.MAIN_HAND);
         // If not holding a bundle, return original value
         if (!heldStack.is(Items.BUNDLE)) return original;
