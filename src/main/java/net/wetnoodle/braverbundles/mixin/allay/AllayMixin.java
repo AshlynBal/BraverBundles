@@ -1,6 +1,7 @@
 package net.wetnoodle.braverbundles.mixin.allay;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -29,7 +30,7 @@ public abstract class AllayMixin extends PathfinderMob {
      * @return if the items are equal or if the target is found inside the allay's bundle.
      */
     @ModifyExpressionValue(method = "wantsToPickUp", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/allay/Allay;allayConsidersItemEqual(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)Z"))
-    private boolean braverBundles$allayConsidersItemsEqual(boolean original, ItemStack itemStack) {
+    private boolean braverBundles$allayConsidersItemsEqual(boolean original, @Local(ordinal = 0, argsOnly = true) ItemStack itemStack) {
         ItemStack heldStack = this.getItemInHand(InteractionHand.MAIN_HAND);
         // If not holding a bundle, return original value
         if (!heldStack.is(Items.BUNDLE)) return original;
