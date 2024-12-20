@@ -7,9 +7,9 @@ import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.BundleItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.phys.AABB;
@@ -28,31 +28,33 @@ import java.util.Optional;
 public interface DispenseItemBehaviorMixin {
     @Inject(method = "bootStrap", at = @At("HEAD"))
     private static void braverBundles$bootStrap(CallbackInfo ci) {
-        if (BBConfig.DISPENSERS_USE_BUNDLES) {
-            OptionalDispenseItemBehavior bundleDispenseBehavior = new OptionalDispenseItemBehavior() {
-                @Override
-                protected @NotNull ItemStack execute(BlockSource blockSource, ItemStack bundleStack) {
-                    BundleContents bundleContents = bundleStack.get(DataComponents.BUNDLE_CONTENTS);
-                    Direction direction = blockSource.state().getValue(DispenserBlock.FACING);
-                    BlockPos frontPos = blockSource.pos().relative(direction);
-                    List<ItemEntity> itemEntityList = blockSource.level()
-                            .getEntitiesOfClass(
-                                    ItemEntity.class,
-                                    new AABB(frontPos),
-                                    livingEntity -> livingEntity instanceof ItemEntity
-                            );
-                    // If there are no items in front of the dispenser
-                    if (itemEntityList.isEmpty()) {
-                        if (bundleContents != null && !bundleContents.isEmpty()) {
-                            Optional<ItemStack> optional = BraverBundles$removeOneItemFromBundle(bundleStack, bundleContents);
-                            if (optional.isPresent()) {
-                                spawnItem(blockSource.level(), optional.get(), 6, direction, DispenserBlock.getDispensePosition(blockSource));
-                                playSound(blockSource);
-                                // play bundle sound
-                                playAnimation(blockSource, direction);
-                                setSuccess(true);
-                                return bundleStack;
-                            }
+        OptionalDispenseItemBehavior bundleDispenseBehavior = new OptionalDispenseItemBehavior() {
+            @Override
+            protected @NotNull ItemStack execute(BlockSource blockSource, ItemStack bundleStack) {
+                if (!BBConfig.DISPENSERS_USE_BUNDLES) {
+                    return super.execute(blockSource, bundleStack);
+                }
+                BundleContents bundleContents = bundleStack.get(DataComponents.BUNDLE_CONTENTS);
+                Direction direction = blockSource.state().getValue(DispenserBlock.FACING);
+                BlockPos frontPos = blockSource.pos().relative(direction);
+                List<ItemEntity> itemEntityList = blockSource.level()
+                        .getEntitiesOfClass(
+                                ItemEntity.class,
+                                new AABB(frontPos),
+                                livingEntity -> livingEntity instanceof ItemEntity
+                        );
+                // If there are no items in front of the dispenser
+                if (itemEntityList.isEmpty()) {
+                    if (bundleContents != null && !bundleContents.isEmpty()) {
+                        Optional<ItemStack> optional = BraverBundles$removeOneItemFromBundle(bundleStack, bundleContents);
+                        if (optional.isPresent()) {
+                            spawnItem(blockSource.level(), optional.get(), 6, direction, DispenserBlock.getDispensePosition(blockSource));
+                            playSound(blockSource);
+                            // play bundle sound
+                            playAnimation(blockSource, direction);
+                            setSuccess(true);
+                            return bundleStack;
+                        }
 //                        for (ItemStack dispensedItem : bundleContents.itemsCopy()) {
 //                            spawnItem(blockSource.level(), dispensedItem, 6, direction, DispenserBlock.getDispensePosition(blockSource));
 //                        }
@@ -61,40 +63,35 @@ public interface DispenseItemBehaviorMixin {
 //                        itemStack.set(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
 //                        setSuccess(true);
 //                        return itemStack;
+                    }
+                }
+                // Else if there are items in front of the dispenser
+                else if (bundleContents != null && BBConfig.BUNDLE_SCOOPING) {
+                    int space = bundleContents.weight().getDenominator() - bundleContents.weight().getNumerator();
+                    BundleContents.Mutable mutable = new BundleContents.Mutable(bundleContents);
+                    int inserted = 0;
+                    if (space >= 1) for (ItemEntity itemEntity : itemEntityList) {
+                        ItemStack stack = itemEntity.getItem().copy();
+                        inserted = mutable.tryInsert(stack);
+                        if (inserted != 0) {
+                            itemEntity.setItem(stack);
+                            break;
                         }
                     }
-                    // Else if there are items in front of the dispenser
-                    else if (bundleContents != null && BBConfig.BUNDLE_SCOOPING) {
-                        int space = bundleContents.weight().getDenominator() - bundleContents.weight().getNumerator();
-                        BundleContents.Mutable mutable = new BundleContents.Mutable(bundleContents);
-                        int inserted = 0;
-                        if (space >= 1) for (ItemEntity itemEntity : itemEntityList) {
-                            ItemStack stack = itemEntity.getItem().copy();
-                            inserted = mutable.tryInsert(stack);
-                            if (inserted != 0) {
-                                itemEntity.setItem(stack);
-                                break;
-                            }
-                        }
-                        bundleStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
-                        setSuccess(inserted != 0);
-                        return bundleStack;
-                    }
-                    setSuccess(false);
+                    bundleStack.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
+                    setSuccess(inserted != 0);
                     return bundleStack;
                 }
-            };
-            registerBundleBehavior(bundleDispenseBehavior);
-        }
+                setSuccess(false);
+                return bundleStack;
+            }
+        };
+        registerBundleBehavior(bundleDispenseBehavior);
     }
 
     @Unique
     private static void registerBundleBehavior(OptionalDispenseItemBehavior bundleDispenseBehavior) {
-        Item[] bundles = {Items.BUNDLE, Items.BLACK_BUNDLE, Items.BLUE_BUNDLE, Items.BROWN_BUNDLE, Items.CYAN_BUNDLE,
-                Items.GRAY_BUNDLE, Items.GREEN_BUNDLE, Items.LIGHT_BLUE_BUNDLE, Items.LIGHT_GRAY_BUNDLE,
-                Items.LIME_BUNDLE, Items.MAGENTA_BUNDLE, Items.ORANGE_BUNDLE, Items.PINK_BUNDLE, Items.PURPLE_BUNDLE,
-                Items.RED_BUNDLE, Items.WHITE_BUNDLE, Items.YELLOW_BUNDLE};
-        for (Item bundle : bundles) {
+        for (Item bundle : BundleItem.getAllBundleItemColors()) {
             DispenserBlock.registerBehavior(bundle, bundleDispenseBehavior);
         }
     }

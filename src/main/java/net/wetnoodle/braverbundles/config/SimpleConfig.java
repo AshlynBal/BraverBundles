@@ -127,7 +127,9 @@ public class SimpleConfig {
         if (!entry.isEmpty() && !entry.startsWith("#")) {
             String[] parts = entry.split("=", 2);
             if (parts.length == 2) {
-                config.put(parts[0], parts[1]);
+                // recognizes comments after a value
+                String temp = parts[1].split(" #")[0];
+                config.put(parts[0], temp);
             } else {
                 throw new RuntimeException("Syntax error in config file on line " + line + "!");
             }
